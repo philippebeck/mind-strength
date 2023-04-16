@@ -1,1 +1,1 @@
-mind-strength
+# Mind Strength
