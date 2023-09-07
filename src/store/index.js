@@ -1,22 +1,21 @@
-import { createApp } from "vue"
 import { createStore } from "vuex"
-import App from "../App.vue"
-import serve from "servidio"
-
-const app = createApp(App)
-app.config.globalProperties.$serve = serve
+import { getData } from "../assets/axios"
+import { checkError, fetchGet } from "../assets/serve"
+import constants from "/constants"
 
 export default createStore({
   namespaced: true,
 
   state: {
-    // OBJECT
+    //! ******************** OBJECT STATE ********************
+
     article:  {},
     gallery:  {},
     product:  {},
     user:     {},
 
-    // ARRAY
+    //! ******************** ARRAY STATE ********************
+
     articles:   [],
     comments:   [],
     galleries:  [],
@@ -29,13 +28,16 @@ export default createStore({
   },
 
   getters: {
-    // OBJECT
+
+    //! ******************** OBJECT GETTERS ********************
+
     getArticle: state => state.article,
     getGallery: state => state.gallery,
     getProduct: state => state.product,
     getUser:    state => state.user,
 
-    // ARRAY
+    //! ******************** ARRAY GETTERS ********************
+
     getArticles:  state => state.articles,
     getComments:  state => state.comments,
     getGalleries: state => state.galleries,
@@ -48,13 +50,20 @@ export default createStore({
   },
 
   mutations: {
-    // OBJECT
+    //! ******************** OBJECT MUTATIONS ********************
+
     SET_ARTICLE(state, article) { state.article = article },
     SET_GALLERY(state, gallery) { state.gallery = gallery },
-    SET_PRODUCT(state, product) { state.product = product },
+
+    SET_PRODUCT(state, product) { 
+      product.options = product.options.join(",")
+      state.product = product 
+    },
+
     SET_USER(state, user) { state.user = user },
 
-    // ARRAY
+    //! ******************** ARRAY MUTATIONS ********************
+
     SET_ARTICLES(state, articles) { state.articles = articles },
     SET_COMMENTS(state, comments) { state.comments = comments },
     SET_GALLERIES(state, galleries) { state.galleries = galleries },
@@ -67,120 +76,212 @@ export default createStore({
     },
 
     SET_ORDERS(state, orders) { state.orders = orders },
-    SET_PRODUCTS(state, products) { state.products = products },
+
+    SET_PRODUCTS(state, products) { 
+      for (let product of products) { product.options = product.options.join(",") }
+      state.products = products 
+    },
+  
     SET_REVIEWS(state, reviews) { state.reviews = reviews },
     SET_USERS(state, users) { state.users = users }
   },
 
   actions: {
-    // OBJECT
+    //! ******************** PUBLIC OBJECT ********************
+
+    /**
+     * ! READ ARTICLE
+     * @param {object} context 
+     * @param {string} id 
+     */
     async readArticle(context, id) {
-      app.config.globalProperties.$serve.getData("/articles/" + id)
+      fetchGet(constants.API_URL + "/articles/" + id)
         .then(res => { context.commit("SET_ARTICLE", res) })
-        .catch(err => { app.config.globalProperties.$serve.checkError(err) });
+        .catch(err => { checkError(err) });
     },
 
+    /**
+     * ! READ AVATAR
+     * @param {object} context 
+     * @param {string} id 
+     */
     async readAvatar(context, id) {
-      app.config.globalProperties.$serve.getData("/auth/" + id)
+      fetchGet(constants.API_URL + "/auth/" + id)
         .then(res => { context.commit("SET_USER", res) })
-        .catch(err => { app.config.globalProperties.$serve.checkError(err) });
+        .catch(err => { checkError(err) });
     },
 
+    /**
+     * ! READ GALLERY
+     * @param {object} context 
+     * @param {string} id 
+     */
     async readGallery(context, id) {
-      app.config.globalProperties.$serve.getData("/galleries/" + id)
+      fetchGet(constants.API_URL + "/galleries/" + id)
         .then(res => { context.commit("SET_GALLERY", res) })
-        .catch(err => { app.config.globalProperties.$serve.checkError(err) });
+        .catch(err => { checkError(err) });
     },
 
+    /**
+     * ! READ PRODUCT
+     * @param {object} context 
+     * @param {string} id 
+     */
     async readProduct(context, id) {
-      app.config.globalProperties.$serve.getData("/products/" + id)
+      fetchGet(constants.API_URL + "/products/" + id)
         .then(res => { context.commit("SET_PRODUCT", res) })
-        .catch(err => { app.config.globalProperties.$serve.checkError(err) });
+        .catch(err => { checkError(err) });
     },
 
+    //! ******************** PRIVATE OBJECT ********************
+
+    /**
+     * ! READ USER
+     * @param {object} context 
+     * @param {string} id 
+     */
     async readUser(context, id) {
-      app.config.globalProperties.$serve.getData("/users/" + id)
+      getData("/users/" + id)
         .then(res => { context.commit("SET_USER", res) })
-        .catch(err => { app.config.globalProperties.$serve.checkError(err) });
+        .catch(err => { checkError(err) });
     },
 
-    // ARRAY
+    //! ******************** PUBLIC ARRAY ********************
+
+    /**
+     * ! LIST ARTICLE COMMENTS
+     * @param {object} context 
+     * @param {string} id 
+     */
     async listArticleComments(context, id) {
-      app.config.globalProperties.$serve.getData("/comments/" + id)
+      fetchGet(constants.API_URL + "/comments/" + id)
         .then(res => { context.commit("SET_COMMENTS", res) })
-        .catch(err => { app.config.globalProperties.$serve.checkError(err) });
+        .catch(err => { checkError(err) });
     },
 
+    /**
+     * ! LIST ARTICLES
+     * @param {object} context 
+     */
     async listArticles(context) {
-      app.config.globalProperties.$serve.getData("/articles")
+      fetchGet(constants.API_URL + "/articles")
         .then(res => { context.commit("SET_ARTICLES", res) })
-        .catch(err => { app.config.globalProperties.$serve.checkError(err) });
+        .catch(err => { checkError(err) });
     },
 
+    /**
+     * ! LIST COMMENTS
+     * @param {object} context 
+     */
     async listComments(context) {
-      app.config.globalProperties.$serve.getData("/comments")
+      fetchGet(constants.API_URL + "/comments")
         .then(res => { context.commit("SET_COMMENTS", res) })
-        .catch(err => { app.config.globalProperties.$serve.checkError(err) });
+        .catch(err => { checkError(err) });
     },
 
+    /**
+     * ! LIST GALLERIES
+     * @param {object} context 
+     */
     async listGalleries(context) {
-      app.config.globalProperties.$serve.getData("/galleries")
+      fetchGet(constants.API_URL + "/galleries")
         .then(res => { context.commit("SET_GALLERIES", res) })
-        .catch(err => { app.config.globalProperties.$serve.checkError(err) });
+        .catch(err => { checkError(err) });
     },
 
+    /**
+     * ! LIST GALLERY IMAGES
+     * @param {object} context 
+     * @param {string} id 
+     */
     async listGalleryImages(context, id) {
-      app.config.globalProperties.$serve.getData("/images/" + id)
+      fetchGet(constants.API_URL + "/images/" + id)
         .then(res => { context.commit("SET_IMAGES", res) })
-        .catch(err => { app.config.globalProperties.$serve.checkError(err) });
+        .catch(err => { checkError(err) });
     },
 
-    async listImages(context) {
-      app.config.globalProperties.$serve.getData("/images")
-        .then(res => { context.commit("SET_IMAGES", res) })
-        .catch(err => { app.config.globalProperties.$serve.checkError(err) });
-    },
-
+    /**
+     * ! LIST LINKS
+     * @param {object} context 
+     */
     async listLinks(context) {
-      app.config.globalProperties.$serve.getData("/links")
+      fetchGet(constants.API_URL + "/links")
         .then(res => { context.commit("SET_LINKS", res) })
-        .catch(err => { app.config.globalProperties.$serve.checkError(err) });
+        .catch(err => { checkError(err) });
     },
 
-    async listUserOrders(context, id) {
-      app.config.globalProperties.$serve.getData("/orders/" + id)
-        .then(res => { context.commit("SET_USER_ORDERS", res) })
-        .catch(err => { app.config.globalProperties.$serve.checkError(err) });
-    },
-
-    async listOrders(context) {
-      app.config.globalProperties.$serve.getData("/orders")
-        .then(res => { context.commit("SET_ORDERS", res) })
-        .catch(err => { app.config.globalProperties.$serve.checkError(err) });
-    },
-
+    /**
+     * ! LIST PRODUCT REVIEWS
+     * @param {object} context 
+     * @param {string} id 
+     */
     async listProductReviews(context, id) {
-      app.config.globalProperties.$serve.getData("/reviews/" + id)
+      fetchGet(constants.API_URL + "/reviews/" + id)
         .then(res => { context.commit("SET_REVIEWS", res) })
-        .catch(err => { app.config.globalProperties.$serve.checkError(err) });
+        .catch(err => { checkError(err) });
     },
 
+    /**
+     * ! LIST PRODUCTS
+     * @param {object} context 
+     */
     async listProducts(context) {
-      app.config.globalProperties.$serve.getData("/products")
+      fetchGet(constants.API_URL + "/products")
         .then(res => { context.commit("SET_PRODUCTS", res) })
-        .catch(err => { app.config.globalProperties.$serve.checkError(err) });
+        .catch(err => { checkError(err) });
     },
 
+    /**
+     * ! LIST REVIEWS
+     * @param {object} context 
+     */
     async listReviews(context) {
-      app.config.globalProperties.$serve.getData("/reviews")
+      fetchGet(constants.API_URL + "/reviews")
         .then(res => { context.commit("SET_REVIEWS", res) })
-        .catch(err => { app.config.globalProperties.$serve.checkError(err) });
+        .catch(err => { checkError(err) });
     },
 
+    //! ******************** PRIVATE ARRAY ********************
+
+    /**
+     * ! LIST IMAGES
+     * @param {object} context 
+     */
+    async listImages(context) {
+      getData("/images")
+        .then(res => { context.commit("SET_IMAGES", res) })
+        .catch(err => { checkError(err) });
+    },
+
+    /**
+     * ! LIST USER ORDERS
+     * @param {object} context 
+     * @param {string} id 
+     */
+    async listUserOrders(context, id) {
+      getData("/orders/" + id)
+        .then(res => { context.commit("SET_USER_ORDERS", res) })
+        .catch(err => { checkError(err) });
+    },
+
+    /**
+     * ! LIST ORDERS
+     * @param {object} context 
+     */
+    async listOrders(context) {
+      getData("/orders")
+        .then(res => { context.commit("SET_ORDERS", res) })
+        .catch(err => { checkError(err) });
+    },
+
+    /**
+     * ! LIST USERS
+     * @param {object} context 
+     */
     async listUsers(context) {
-      app.config.globalProperties.$serve.getData("/users")
+      getData("/users")
         .then(res => { context.commit("SET_USERS", res) })
-        .catch(err => { app.config.globalProperties.$serve.checkError(err) });
+        .catch(err => { checkError(err) });
     }
   }
 })
