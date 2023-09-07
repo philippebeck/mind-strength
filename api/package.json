@@ -19,16 +19,16 @@
     "helmet": "^5.0.2",
     "mongoose": "^6.2.1",
     "mongoose-unique-validator": "^3.0.0",
-    "nemjs": "^1.4.0"
-  },
-  "devDependencies": {
-    "cross-env": "^7.0.3",
-    "jest": "^29.5.0",
-    "supertest": "^6.3.3"
+    "nemjs": "^1.6.2"
   },
   "author": {
     "name": "Philippe Beck",
     "email": "philippe@philippebeck.net",
     "url": "https://philippebeck.net"
+  },
+  "devDependencies": {
+    "cross-env": "^7.0.3",
+    "jest": "^29.5.0",
+    "supertest": "^6.3.3"
   }
 }

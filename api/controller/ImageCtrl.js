@@ -21,7 +21,7 @@ const form = formidable({ uploadDir: GALLERIES_IMG, keepExtensions: true });
  * @param {object} res 
  */
 exports.checkImageData = (description, res) => {
-  if (!nem.checkString(description, process.env.STRING_MIN, process.env.TEXT_MAX)) {
+  if (!nem.checkRange(description, process.env.STRING_MIN, process.env.TEXT_MAX)) {
     return res.status(403).json({ message: process.env.CHECK_NAME });
   }
 }
@@ -39,6 +39,24 @@ exports.setImage = (image, newFilename) => {
 
   nem.setImage(input, process.env.IMG_URL + output);
   nem.setThumbnail(input, process.env.THUMB_URL + output);
+}
+
+//! ****************************** GETTER ******************************
+
+/**
+ * GET IMAGE
+ * @param {string} name 
+ * @param {string} description 
+ * @param {string} gallery 
+ * @returns 
+ */
+exports.getImage = (name, description, gallery) => {
+
+  return {
+    name: name,
+    description: description,
+    gallery: gallery
+  }
 }
 
 //! ****************************** PUBLIC ******************************
@@ -72,7 +90,7 @@ exports.listImages = (req, res) => {
         .then((galleries) => {
           for (let image of images) {
             for (let gallery of galleries) {
-        
+
               if (image.gallery === gallery._id.toString()) {
                 image.gallery = image.gallery + "-" + gallery.name;
               }
@@ -104,19 +122,12 @@ exports.createImage = (req, res, next) => {
         ImageModel
         .find({ gallery: fields.gallery })
         .then((images) => { 
-
           let index = images.length + 1;
-
           if (index < 10) { index = "0" + index }
 
           let name = nem.getName(gallery.name) + "-" + index + "." + process.env.IMG_EXT;
           this.setImage(name, files.image.newFilename);
-
-          let image = new ImageModel({
-            name: name,
-            description: fields.description,
-            gallery: fields.gallery
-          });
+          let image = new ImageModel(this.getImage(name, fields.description, fields.gallery));
 
           image
             .save()
@@ -144,23 +155,15 @@ exports.updateImage = (req, res, next) => {
     if (err) { next(err); return }
 
     this.checkImageData(fields.description, res);
-
     let name = fields.name;
 
-    if (files.image.newFilename) {
-      this.setImage(name, files.image.newFilename);
-    }
-
-    let image = {
-      name: name,
-      description: fields.description,
-      gallery: fields.gallery
-    };
+    if (files.image) this.setImage(name, files.image.newFilename);
+    let image = this.getImage(name, fields.description, fields.gallery);
 
     ImageModel
       .findByIdAndUpdate(req.params.id, { ...image, _id: req.params.id })
       .then(() => {
-        if (files.image.newFilename) { fs.unlink(GALLERIES_IMG + files.image.newFilename, () => {}) }
+        if (files.image) fs.unlink(GALLERIES_IMG + files.image.newFilename, () => {});
         res.status(200).json({ message: process.env.IMAGE_UPDATED });
       })
       .catch(() => res.status(400).json({ message: process.env.IMAGE_NOT_UPDATED }));
